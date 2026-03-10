@@ -1,0 +1,1439 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Evaluador de Lenguaje Claro</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/mammoth@1.6.0/mammoth.browser.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --primary:       #2ea3f2;
+      --text:          #333333;
+      --text-body:     #666666;
+      --text-muted:    #999999;
+      --border:        #e2e2e2;
+      --border-light:  #eeeeee;
+      --bg:            #ffffff;
+      --bg-section:    #f9f9f9;
+      --success:       #27ae60;
+      --success-dark:  #1a8a4a;
+      --warning:       #e67e22;
+      --error:         #e74c3c;
+      --radius:        3px;
+    }
+
+    body {
+      font-family: 'Open Sans', Arial, sans-serif;
+      font-size: 14px;
+      font-weight: 500;
+      line-height: 1.7em;
+      color: var(--text-body);
+      background: var(--bg);
+    }
+
+    a { color: var(--primary); text-decoration: none; }
+
+    /* ── Layout ────────────────────────────────────────────────────────── */
+
+    .container {
+      max-width: 1080px;
+      width: 80%;
+      margin: 0 auto;
+      padding: 0 0 60px;
+    }
+
+    @media (max-width: 900px)  { .container { width: 92%; } }
+    @media (max-width: 600px)  { .container { width: 96%; } }
+
+    /* ── Header ─────────────────────────────────────────────────────────── */
+
+    #app-header {
+      background: var(--bg);
+      border-bottom: 1px solid var(--border);
+      padding: 18px 0;
+      margin-bottom: 30px;
+    }
+
+    #app-header .inner {
+      max-width: 1080px;
+      width: 80%;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    @media (max-width: 900px)  { #app-header .inner { width: 92%; } }
+    @media (max-width: 600px)  { #app-header .inner { width: 96%; } }
+
+    #app-header h1 {
+      font-size: 22px;
+      font-weight: 500;
+      color: var(--text);
+    }
+
+    #app-header .tagline {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-left: auto;
+    }
+
+    /* ── Panels ──────────────────────────────────────────────────────────── */
+
+    .panel {
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      margin-bottom: 20px;
+      background: var(--bg);
+    }
+
+    .panel-title {
+      font-size: 18px;
+      font-weight: 500;
+      color: var(--text);
+      margin-bottom: 16px;
+    }
+
+    .panel-subtitle {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: -12px;
+      margin-bottom: 16px;
+    }
+
+    /* ── Buttons ─────────────────────────────────────────────────────────── */
+
+    .btn {
+      font-family: 'Open Sans', Arial, sans-serif;
+      font-size: 14px;
+      font-weight: 500;
+      padding: 8px 18px;
+      border-radius: var(--radius);
+      cursor: pointer;
+      transition: background 0.2s, border-color 0.2s, color 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: #fff;
+      border: 2px solid var(--primary);
+    }
+
+    .btn-primary:hover { background: rgba(46,163,242,0.88); }
+    .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .btn-ghost {
+      background: transparent;
+      color: var(--text-body);
+      border: 2px solid var(--border);
+    }
+
+    .btn-ghost:hover { background: rgba(0,0,0,0.04); }
+
+    /* ── Inputs ──────────────────────────────────────────────────────────── */
+
+    input[type="password"],
+    input[type="text"],
+    textarea {
+      font-family: 'Open Sans', Arial, sans-serif;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text);
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 8px 12px;
+      width: 100%;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    input[type="password"]:focus,
+    input[type="text"]:focus,
+    textarea:focus { border-color: var(--primary); }
+
+    textarea {
+      min-height: 200px;
+      resize: vertical;
+      line-height: 1.6em;
+    }
+
+    /* ── Config panel ────────────────────────────────────────────────────── */
+
+    .key-row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .key-hint {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 8px;
+    }
+
+    /* ── Input panel ─────────────────────────────────────────────────────── */
+
+    .input-actions {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      margin-top: 12px;
+      flex-wrap: wrap;
+    }
+
+    .file-label {
+      font-family: 'Open Sans', Arial, sans-serif;
+      font-size: 14px;
+      font-weight: 500;
+      padding: 8px 18px;
+      border-radius: var(--radius);
+      border: 2px solid var(--border);
+      cursor: pointer;
+      color: var(--text-body);
+      background: var(--bg);
+      transition: background 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .file-label:hover { background: rgba(0,0,0,0.04); }
+
+    #file-input { display: none; }
+
+    #file-name {
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    #evaluar-btn { margin-left: auto; }
+
+    /* ── Progress panel ──────────────────────────────────────────────────── */
+
+    #progress-panel { display: none; }
+
+    .steps { list-style: none; display: flex; flex-direction: column; gap: 4px; }
+
+    .step {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 14px;
+      border-radius: var(--radius);
+      border-left: 3px solid transparent;
+      transition: background 0.2s, border-color 0.2s;
+    }
+
+    .step.idle   { border-left-color: var(--border); }
+    .step.running { border-left-color: var(--primary); background: #f0f8fe; }
+    .step.done    { border-left-color: var(--success); background: #f0faf4; }
+    .step.error   { border-left-color: var(--error);   background: #fdf4f4; }
+
+    .step-icon {
+      width: 20px;
+      height: 20px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* CSS spinner */
+    .spinner {
+      width: 16px;
+      height: 16px;
+      border: 2px solid var(--border);
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .icon-done {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: var(--success);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .icon-done::after {
+      content: '';
+      display: block;
+      width: 5px;
+      height: 9px;
+      border: 2px solid #fff;
+      border-top: none;
+      border-left: none;
+      transform: rotate(45deg) translateY(-1px);
+    }
+
+    .icon-error {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: var(--error);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      color: #fff;
+      font-weight: 700;
+      line-height: 1;
+    }
+
+    .icon-idle {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      border: 2px solid var(--border);
+    }
+
+    .step-info { flex: 1; min-width: 0; }
+
+    .step-label {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text);
+    }
+
+    .step.idle .step-label   { color: var(--text-muted); }
+    .step.running .step-label { color: var(--primary); }
+    .step.done .step-label    { color: var(--success-dark); }
+    .step.error .step-label   { color: var(--error); }
+
+    .step-sub {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    /* ── Error panel ─────────────────────────────────────────────────────── */
+
+    #error-panel {
+      display: none;
+      border-color: #f5b7b1;
+      background: #fdf0ef;
+    }
+
+    .error-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--error);
+      margin-bottom: 8px;
+    }
+
+    #error-msg {
+      font-size: 13px;
+      color: #7b241c;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    /* ── Report ──────────────────────────────────────────────────────────── */
+
+    #report-panel { display: none; }
+
+    .score-hero {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 30px 0 20px;
+      text-align: center;
+    }
+
+    .score-badge {
+      width: 130px;
+      height: 130px;
+      border-radius: 50%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      margin-bottom: 14px;
+    }
+
+    .score-num   { font-size: 2.4rem; font-weight: 700; line-height: 1; }
+    .score-unit  { font-size: 0.85rem; font-weight: 500; opacity: 0.85; margin-top: 2px; }
+
+    .score-meta {
+      font-size: 14px;
+      color: var(--text-muted);
+    }
+
+    .score-meta strong { color: var(--text); text-transform: capitalize; }
+
+    /* Section cards */
+
+    .section-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 12px;
+      margin-bottom: 30px;
+    }
+
+    .section-card {
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px;
+    }
+
+    .section-card-name {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+
+    .section-card-pct {
+      font-size: 1.8rem;
+      font-weight: 700;
+      line-height: 1;
+      margin-bottom: 8px;
+    }
+
+    .bar-track {
+      height: 5px;
+      background: var(--border-light);
+      border-radius: 3px;
+      overflow: hidden;
+      margin-bottom: 8px;
+    }
+
+    .bar-fill {
+      height: 100%;
+      border-radius: 3px;
+    }
+
+    .section-counts {
+      font-size: 12px;
+      color: var(--text-muted);
+      display: flex;
+      gap: 12px;
+    }
+
+    .c-si  { color: var(--success); font-weight: 600; }
+    .c-no  { color: var(--error);   font-weight: 600; }
+    .c-nc  { color: var(--text-muted); }
+
+    /* Analysis boxes */
+
+    .analysis-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 30px;
+    }
+
+    @media (max-width: 600px) { .analysis-grid { grid-template-columns: 1fr; } }
+
+    .analysis-box {
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px;
+    }
+
+    .analysis-box-title {
+      font-size: 15px;
+      font-weight: 500;
+      color: var(--text);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .analysis-box ul {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .analysis-box li {
+      font-size: 13px;
+      color: var(--text-body);
+      padding-left: 18px;
+      position: relative;
+    }
+
+    .analysis-box li::before {
+      position: absolute;
+      left: 0;
+      font-weight: 600;
+    }
+
+    .box-positivo li::before { content: '✓'; color: var(--success); }
+    .box-mejora   li::before { content: '→'; color: var(--warning); }
+
+    /* Narrativo */
+
+    .narrativo {
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--bg-section);
+      padding: 18px 22px;
+      font-size: 14px;
+      line-height: 1.8em;
+      color: var(--text-body);
+      margin-bottom: 30px;
+    }
+
+    /* Detail table */
+
+    .table-wrap { overflow-x: auto; }
+
+    table.detail {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    table.detail th {
+      background: var(--bg-section);
+      color: var(--text-muted);
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      padding: 10px 12px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+    }
+
+    table.detail td {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--border-light);
+      vertical-align: top;
+      color: var(--text-body);
+    }
+
+    table.detail tr:hover td { background: var(--bg-section); }
+
+    table.detail tr.sec-head td {
+      background: var(--bg-section);
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      padding: 8px 12px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    /* Eval badges */
+
+    .eval-si {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: var(--radius);
+      font-size: 12px;
+      font-weight: 600;
+      background: #eafaf1;
+      color: var(--success);
+      border: 1px solid #a9dfbf;
+      white-space: nowrap;
+    }
+
+    .eval-no {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: var(--radius);
+      font-size: 12px;
+      font-weight: 600;
+      background: #fdf0ef;
+      color: var(--error);
+      border: 1px solid #f5b7b1;
+      white-space: nowrap;
+    }
+
+    .eval-nc {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: var(--radius);
+      font-size: 12px;
+      font-weight: 600;
+      background: #f4f4f4;
+      color: var(--text-muted);
+      border: 1px solid #ddd;
+      white-space: nowrap;
+    }
+
+    /* ── Divider ─────────────────────────────────────────────────────────── */
+    .divider {
+      border: none;
+      border-top: 1px solid var(--border-light);
+      margin: 24px 0;
+    }
+  </style>
+</head>
+<body>
+
+<header id="app-header">
+  <div class="inner">
+    <svg width="26" height="26" viewBox="0 0 26 26" fill="none" aria-hidden="true">
+      <rect width="26" height="26" rx="3" fill="#2ea3f2"/>
+      <path d="M5 7h16M5 11h12M5 15h14M5 19h9" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
+    </svg>
+    <h1>Evaluador de Lenguaje Claro</h1>
+    <span class="tagline">Cálamo &amp; Cran · Evaluación automática de documentos administrativos</span>
+  </div>
+</header>
+
+<div class="container">
+
+  <!-- Config -->
+  <div class="panel" id="config-panel">
+    <div class="panel-title">Configuración</div>
+    <div class="key-row">
+      <input type="password" id="api-key-input" placeholder="sk-ant-…  (Anthropic API Key)" autocomplete="off" style="font-family:monospace">
+      <button class="btn btn-ghost" id="toggle-key-btn" style="white-space:nowrap">Mostrar</button>
+    </div>
+    <p class="key-hint">La clave se guarda en localStorage de tu navegador. Las llamadas a la API se realizan directamente desde tu equipo.</p>
+  </div>
+
+  <!-- Input -->
+  <div class="panel" id="input-panel">
+    <div class="panel-title">Documento</div>
+    <textarea id="documento-textarea" placeholder="Pega aquí el texto del documento administrativo…"></textarea>
+    <div class="input-actions">
+      <label class="file-label" for="file-input">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+          <path d="M2 11V13H12V11M7 1V9M4 4L7 1L10 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        Cargar archivo
+      </label>
+      <input type="file" id="file-input" accept=".txt,.docx,.pdf">
+      <span id="file-name">Compatible con .txt, .docx y .pdf</span>
+      <button class="btn btn-primary" id="evaluar-btn">Evaluar documento</button>
+    </div>
+  </div>
+
+  <!-- Progress -->
+  <div class="panel" id="progress-panel">
+    <div class="panel-title">Evaluando…</div>
+    <ul class="steps" id="steps-list">
+      <li class="step idle" data-step="0">
+        <span class="step-icon"><span class="icon-idle"></span></span>
+        <div class="step-info">
+          <div class="step-label">SA-0 · Clasificador</div>
+          <div class="step-sub">Identifica la tipología documental</div>
+        </div>
+      </li>
+      <li class="step idle" data-step="1">
+        <span class="step-icon"><span class="icon-idle"></span></span>
+        <div class="step-info">
+          <div class="step-label">SA-1 · Facilita la localización</div>
+          <div class="step-sub">11 ítems</div>
+        </div>
+      </li>
+      <li class="step idle" data-step="2">
+        <span class="step-icon"><span class="icon-idle"></span></span>
+        <div class="step-info">
+          <div class="step-label">SA-2 · Mejora la comprensión (ideas)</div>
+          <div class="step-sub">10 ítems</div>
+        </div>
+      </li>
+      <li class="step idle" data-step="3">
+        <span class="step-icon"><span class="icon-idle"></span></span>
+        <div class="step-info">
+          <div class="step-label">SA-3 · Personaliza y humaniza</div>
+          <div class="step-sub">7 ítems</div>
+        </div>
+      </li>
+      <li class="step idle" data-step="4">
+        <span class="step-icon"><span class="icon-idle"></span></span>
+        <div class="step-info">
+          <div class="step-label">SA-4 · Palabras sencillas</div>
+          <div class="step-sub">10 ítems</div>
+        </div>
+      </li>
+      <li class="step idle" data-step="5">
+        <span class="step-icon"><span class="icon-idle"></span></span>
+        <div class="step-info">
+          <div class="step-label">SA-5 · Toma de decisiones</div>
+          <div class="step-sub">3 ítems</div>
+        </div>
+      </li>
+      <li class="step idle" data-step="6">
+        <span class="step-icon"><span class="icon-idle"></span></span>
+        <div class="step-info">
+          <div class="step-label">SA-6a · Calculador</div>
+          <div class="step-sub">Cálculo de puntuaciones (sin LLM)</div>
+        </div>
+      </li>
+      <li class="step idle" data-step="7">
+        <span class="step-icon"><span class="icon-idle"></span></span>
+        <div class="step-info">
+          <div class="step-label">SA-6b · Sintetizador</div>
+          <div class="step-sub">Resumen narrativo</div>
+        </div>
+      </li>
+    </ul>
+  </div>
+
+  <!-- Error -->
+  <div class="panel" id="error-panel">
+    <div class="error-title">Se ha producido un error</div>
+    <div id="error-msg"></div>
+  </div>
+
+  <!-- Report -->
+  <div id="report-panel"></div>
+
+</div><!-- /container -->
+
+<script>
+'use strict';
+
+// ═══════════════════════════════════════════════════════════════════════════
+// A. Prompt constants (template literal functions)
+//    Python {{ }} → JS { }   |   Python {var} → JS ${var}
+// ═══════════════════════════════════════════════════════════════════════════
+
+const PROMPT_CLASIFICADOR = (texto) => `Eres un experto en documentación administrativa española.
+
+Tu única tarea es clasificar el siguiente documento en una de estas tipologías:
+resolución, notificación, carta, formulario, acta, informe, circular, decreto,
+convocatoria, instrucción, otro.
+
+Analiza la estructura, el tono, los elementos formales y el propósito del texto.
+
+Responde SOLO con JSON válido, sin markdown ni explicaciones adicionales:
+{
+  "tipologia": "<una de las tipologías>",
+  "justificacion": "<1-2 frases explicando tu decisión>"
+}
+
+DOCUMENTO:
+${texto}`;
+
+const PROMPT_SECCION_1 = (tipologia, texto) => `Eres un experto en comunicación institucional y lenguaje claro.
+
+CONTEXTO: Estás evaluando un documento de tipo "${tipologia}".
+
+Tu tarea es evaluar SOLO los siguientes 11 ítems de la sección "Facilita la localización".
+Para cada ítem, responde con una evaluación (Sí / No / No compete) y un comentario breve
+(máx. 2 frases, con ejemplos del texto cuando sea posible).
+
+Marca "No compete" SOLO cuando el tipo de documento ("${tipologia}") no requiera ese ítem
+por su naturaleza. No abuses de esta marca.
+
+ÍTEMS A EVALUAR:
+1. El documento incluye una nota explicativa al inicio.
+2. Los epígrafes y subepígrafes están destacados con estilos jerarquizados.
+3. Se usan listados para organizar las ideas.
+4. Las referencias legales están reubicadas al final del documento o en apartados específicos.
+5. La información relevante aparece cerca de los datos clave.
+6. Se utilizan tablas para explicar condiciones complejas.
+7. Las enumeraciones son homogéneas y claras (viñetas para listas sin orden, numeración para instrucciones con orden, letras para opciones).
+8. Se usan negrita, cursiva y comillas según las normas de estilo del español.
+9. Se evita el abuso de mayúsculas.
+10. No se combinan varios recursos de resaltado a la vez.
+11. Se evita el subrayado.
+
+Responde SOLO con JSON válido (sin markdown), con esta estructura:
+{
+  "seccion": 1,
+  "nombre_seccion": "Facilita la localización",
+  "items": [
+    {
+      "seccion": 1,
+      "item": "<descripción breve del ítem>",
+      "evaluacion": "Sí|No|No compete",
+      "comentario": "<máx. 2 frases>"
+    }
+  ]
+}
+
+DOCUMENTO:
+${texto}`;
+
+const PROMPT_SECCION_2 = (tipologia, texto) => `Eres un experto en comunicación institucional y lenguaje claro.
+
+CONTEXTO: Estás evaluando un documento de tipo "${tipologia}".
+
+Tu tarea es evaluar SOLO los siguientes 10 ítems de la sección "Mejora la comprensión (ideas)".
+Para cada ítem, responde con una evaluación (Sí / No / No compete) y un comentario breve
+(máx. 2 frases, con ejemplos del texto cuando sea posible).
+
+ÍTEMS A EVALUAR:
+1. Cada párrafo contiene una sola idea.
+2. Se mantiene el orden sintáctico básico (sujeto + verbo + complementos) en cada frase.
+3. El texto de cada párrafo sigue un orden lógico (causa-efecto o cronológico).
+4. Las frases son cortas (menos de 30 palabras).
+5. Se evita encadenar subordinadas.
+6. No hay contenido irrelevante o redundante.
+7. Las frases y párrafos muestran una construcción positiva y sin dobles negaciones.
+8. Se usan marcadores textuales para conectar ideas.
+9. Se evitan frases unidas por "y" sin una relación clara.
+10. Los referentes en frases largas son claros.
+
+Responde SOLO con JSON válido (sin markdown), con esta estructura:
+{
+  "seccion": 2,
+  "nombre_seccion": "Mejora la comprensión (ideas)",
+  "items": [
+    {
+      "seccion": 2,
+      "item": "<descripción breve del ítem>",
+      "evaluacion": "Sí|No|No compete",
+      "comentario": "<máx. 2 frases>"
+    }
+  ]
+}
+
+DOCUMENTO:
+${texto}`;
+
+const PROMPT_SECCION_3 = (tipologia, texto) => `Eres un experto en comunicación institucional y lenguaje claro.
+
+CONTEXTO: Estás evaluando un documento de tipo "${tipologia}".
+
+Tu tarea es evaluar SOLO los siguientes 7 ítems de la sección "Mejora la comprensión (personaliza y humaniza)".
+Para cada ítem, responde con una evaluación (Sí / No / No compete) y un comentario breve
+(máx. 2 frases, con ejemplos del texto cuando sea posible).
+
+ÍTEMS A EVALUAR:
+1. Se usa la voz activa en lugar de la pasiva o reflexiva.
+2. La entidad emisora se identifica en primera persona del plural.
+3. El tratamiento es adecuado ("usted" por defecto).
+4. Se evitan fórmulas de cortesía arcaicas.
+5. No hay elementos intimidatorios.
+6. Se mantiene la coherencia en número y persona del discurso (si se usa "usted", no se cambia después a "ustedes" sin motivo).
+7. Cuando se usan ejemplos, son cercanos y cotidianos.
+
+Responde SOLO con JSON válido (sin markdown), con esta estructura:
+{
+  "seccion": 3,
+  "nombre_seccion": "Mejora la comprensión (personaliza y humaniza)",
+  "items": [
+    {
+      "seccion": 3,
+      "item": "<descripción breve del ítem>",
+      "evaluacion": "Sí|No|No compete",
+      "comentario": "<máx. 2 frases>"
+    }
+  ]
+}
+
+DOCUMENTO:
+${texto}`;
+
+const PROMPT_SECCION_4 = (tipologia, texto) => `Eres un experto en comunicación institucional y lenguaje claro.
+
+CONTEXTO: Estás evaluando un documento de tipo "${tipologia}".
+
+Tu tarea es evaluar SOLO los siguientes 10 ítems de la sección "Mejora la comprensión (elige palabras sencillas)".
+Para cada ítem, responde con una evaluación (Sí / No / No compete) y un comentario breve
+(máx. 2 frases, con ejemplos del texto cuando sea posible).
+
+ÍTEMS A EVALUAR:
+1. Se simplifican los términos legales cuando es posible.
+2. Los tecnicismos necesarios están explicados (entre paréntesis o en un glosario).
+3. Cuando se utilizan sinónimos para términos técnicos, se mantiene la coherencia y no se añaden sinónimos nuevos para el mismo término.
+4. No se usan palabras formadas con derivaciones complejas.
+5. Cuando aparecen siglas, se desarrollan la primera vez que se mencionan.
+6. El texto carece de arcaísmos y formulismos legales o administrativos.
+7. Se usan verbos en lugar de nominalizaciones.
+8. No se omiten determinantes.
+9. Se evitan gerundios de posterioridad.
+10. Se evitan participios ambiguos.
+
+Responde SOLO con JSON válido (sin markdown), con esta estructura:
+{
+  "seccion": 4,
+  "nombre_seccion": "Mejora la comprensión (elige palabras sencillas)",
+  "items": [
+    {
+      "seccion": 4,
+      "item": "<descripción breve del ítem>",
+      "evaluacion": "Sí|No|No compete",
+      "comentario": "<máx. 2 frases>"
+    }
+  ]
+}
+
+DOCUMENTO:
+${texto}`;
+
+const PROMPT_SECCION_5 = (tipologia, texto) => `Eres un experto en comunicación institucional y lenguaje claro.
+
+CONTEXTO: Estás evaluando un documento de tipo "${tipologia}".
+
+Tu tarea es evaluar SOLO los siguientes 3 ítems de la sección "Facilita la toma de decisiones".
+Para cada ítem, responde con una evaluación (Sí / No / No compete) y un comentario breve
+(máx. 2 frases, con ejemplos del texto cuando sea posible).
+
+ÍTEMS A EVALUAR:
+1. Se indican, si las hay, instrucciones con un orden claro.
+2. Se indican, si los hay, plazos para realizar las acciones necesarias.
+3. Se indica, si lo hay, el procedimiento para hacerlo en línea o de forma presencial.
+
+Responde SOLO con JSON válido (sin markdown), con esta estructura:
+{
+  "seccion": 5,
+  "nombre_seccion": "Facilita la toma de decisiones",
+  "items": [
+    {
+      "seccion": 5,
+      "item": "<descripción breve del ítem>",
+      "evaluacion": "Sí|No|No compete",
+      "comentario": "<máx. 2 frases>"
+    }
+  ]
+}
+
+DOCUMENTO:
+${texto}`;
+
+const PROMPT_SINTETIZADOR = (tipologia, puntuaciones, itemsNo) => `Eres un experto en comunicación institucional y lenguaje claro.
+
+A partir de los siguientes resultados de evaluación de un documento de tipo "${tipologia}",
+genera un resumen cualitativo.
+
+PUNTUACIONES:
+${puntuaciones}
+
+TABLA DETALLADA (ítems con "No"):
+${itemsNo}
+
+Responde SOLO con JSON válido (sin markdown):
+{
+  "puntos_fuertes": ["<punto 1>", "<punto 2>"],
+  "areas_mejora": ["<área 1>", "<área 2>"],
+  "resumen_narrativo": "<párrafo de 3-5 frases con la valoración global>"
+}`;
+
+const PROMPTS_SECCIONES = {
+  1: PROMPT_SECCION_1,
+  2: PROMPT_SECCION_2,
+  3: PROMPT_SECCION_3,
+  4: PROMPT_SECCION_4,
+  5: PROMPT_SECCION_5,
+};
+
+// ═══════════════════════════════════════════════════════════════════════════
+// B. API layer
+// ═══════════════════════════════════════════════════════════════════════════
+
+function limpiarJson(texto) {
+  texto = texto.trim();
+  if (texto.startsWith('```')) {
+    const nl = texto.indexOf('\n');
+    texto = nl >= 0 ? texto.slice(nl + 1) : texto.slice(3);
+  }
+  if (texto.endsWith('```')) {
+    texto = texto.slice(0, -3);
+  }
+  return texto.trim();
+}
+
+async function llamarClaude(apiKey, prompt, { model = 'claude-sonnet-4-20250514', maxTokens = 4096, temperature = 0 } = {}) {
+  const resp = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'x-api-key': apiKey,
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-access': 'true',
+      'content-type': 'application/json',
+    },
+    body: JSON.stringify({
+      model,
+      max_tokens: maxTokens,
+      temperature,
+      messages: [{ role: 'user', content: prompt }],
+    }),
+  });
+
+  if (!resp.ok) {
+    const body = await resp.text().catch(() => resp.statusText);
+    throw new Error(`Error de API (${resp.status}): ${body}`);
+  }
+
+  const data = await resp.json();
+  const raw = data.content[0].text;
+
+  try {
+    return JSON.parse(limpiarJson(raw));
+  } catch (e) {
+    throw new Error(`Error al parsear JSON: ${e.message}\n\nRespuesta recibida:\n${raw}`);
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// C. Pipeline nodes
+// ═══════════════════════════════════════════════════════════════════════════
+
+async function nodoClasificador(estado, apiKey) {
+  setStep(0, 'running');
+  try {
+    const res = await llamarClaude(apiKey, PROMPT_CLASIFICADOR(estado.texto), { maxTokens: 500 });
+    estado.tipologia = res.tipologia;
+    estado.justificacionTipologia = res.justificacion;
+    setStep(0, 'done');
+  } catch (err) {
+    setStep(0, 'error');
+    throw err;
+  }
+}
+
+function crearNodoEvaluador(seccion) {
+  return async function (estado, apiKey) {
+    setStep(seccion, 'running'); // seccion 1..5 maps directly to step index 1..5
+    try {
+      const prompt = PROMPTS_SECCIONES[seccion](estado.tipologia, estado.texto);
+      const res = await llamarClaude(apiKey, prompt);
+      estado.resultadosSecciones.push({
+        seccion: res.seccion,
+        nombre_seccion: res.nombre_seccion,
+        items: res.items,
+      });
+      setStep(seccion, 'done');
+    } catch (err) {
+      setStep(seccion, 'error');
+      throw err;
+    }
+  };
+}
+
+function nodoCalculador(estado) {
+  setStep(6, 'running');
+  try {
+    const nombres = {
+      1: 'Facilita la localización',
+      2: 'Mejora la comprensión (ideas)',
+      3: 'Mejora la comprensión (personaliza y humaniza)',
+      4: 'Mejora la comprensión (elige palabras sencillas)',
+      5: 'Facilita la toma de decisiones',
+    };
+
+    const secciones = [];
+    let totalEvaluablesGlobal = 0;
+    let totalSiGlobal = 0;
+
+    for (let n = 1; n <= 5; n++) {
+      const sec = estado.resultadosSecciones.find(r => r.seccion === n);
+      if (!sec) continue;
+
+      const totalSi = sec.items.filter(i => i.evaluacion === 'Sí').length;
+      const totalNo = sec.items.filter(i => i.evaluacion === 'No').length;
+      const totalNc = sec.items.filter(i => i.evaluacion === 'No compete').length;
+      const evaluables = totalSi + totalNo;
+      const porcentaje = evaluables > 0 ? Math.round((totalSi / evaluables) * 1000) / 10 : null;
+
+      secciones.push({ seccion: n, nombre: nombres[n], totalEvaluables: evaluables, totalSi, totalNo, totalNoCompete: totalNc, porcentaje });
+
+      totalEvaluablesGlobal += evaluables;
+      totalSiGlobal += totalSi;
+    }
+
+    const puntuacionGeneral = totalEvaluablesGlobal > 0
+      ? Math.round((totalSiGlobal / totalEvaluablesGlobal) * 1000) / 10
+      : 0;
+
+    estado.puntuacion = { puntuacionGeneral, secciones };
+    setStep(6, 'done');
+  } catch (err) {
+    setStep(6, 'error');
+    throw err;
+  }
+}
+
+async function nodoSintetizador(estado, apiKey) {
+  setStep(7, 'running');
+  try {
+    const { puntuacion, resultadosSecciones, tipologia } = estado;
+
+    const lineasPunt = [`Puntuación general: ${puntuacion.puntuacionGeneral}%`];
+    for (const s of puntuacion.secciones) {
+      lineasPunt.push(`  Sección ${s.seccion} – ${s.nombre}: ${s.porcentaje}%`);
+    }
+
+    const itemsNoArr = [];
+    for (const sec of resultadosSecciones) {
+      for (const item of sec.items) {
+        if (item.evaluacion === 'No') {
+          itemsNoArr.push(`  [S${item.seccion}] ${item.item}: ${item.comentario}`);
+        }
+      }
+    }
+
+    const prompt = PROMPT_SINTETIZADOR(
+      tipologia,
+      lineasPunt.join('\n'),
+      itemsNoArr.length > 0 ? itemsNoArr.join('\n') : '(ningún ítem con No)',
+    );
+
+    const res = await llamarClaude(apiKey, prompt, { temperature: 0.3, maxTokens: 2048 });
+
+    // Build tabla_detallada sorted by section
+    const tablaDetallada = [];
+    const ordenadas = [...resultadosSecciones].sort((a, b) => a.seccion - b.seccion);
+    for (const sec of ordenadas) tablaDetallada.push(...sec.items);
+
+    estado.informeFinal = {
+      puntuacion,
+      tipologia,
+      puntosFuertes: res.puntos_fuertes || [],
+      areasMejora: res.areas_mejora || [],
+      resumenNarrativo: res.resumen_narrativo || '',
+      tablaDetallada,
+    };
+
+    setStep(7, 'done');
+  } catch (err) {
+    setStep(7, 'error');
+    throw err;
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// D. Orchestrator
+// ═══════════════════════════════════════════════════════════════════════════
+
+async function ejecutarPipeline(texto, apiKey) {
+  const estado = {
+    texto,
+    tipologia: '',
+    justificacionTipologia: '',
+    resultadosSecciones: [],
+    puntuacion: null,
+    informeFinal: null,
+  };
+
+  await nodoClasificador(estado, apiKey);
+  await Promise.all([1, 2, 3, 4, 5].map(n => crearNodoEvaluador(n)(estado, apiKey)));
+  nodoCalculador(estado);
+  await nodoSintetizador(estado, apiKey);
+
+  return estado.informeFinal;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// E. File reader
+// ═══════════════════════════════════════════════════════════════════════════
+
+function leerArchivo(file) {
+  return new Promise((resolve, reject) => {
+    const ext = file.name.split('.').pop().toLowerCase();
+
+    if (ext === 'txt') {
+      const reader = new FileReader();
+      reader.onload = e => resolve(e.target.result);
+      reader.onerror = () => reject(new Error('Error leyendo el archivo .txt'));
+      reader.readAsText(file, 'UTF-8');
+
+    } else if (ext === 'docx') {
+      const reader = new FileReader();
+      reader.onload = async e => {
+        try {
+          const result = await mammoth.extractRawText({ arrayBuffer: e.target.result });
+          resolve(result.value);
+        } catch (err) {
+          reject(new Error(`Error leyendo .docx: ${err.message}`));
+        }
+      };
+      reader.onerror = () => reject(new Error('Error leyendo el archivo .docx'));
+      reader.readAsArrayBuffer(file);
+
+    } else if (ext === 'pdf') {
+      const reader = new FileReader();
+      reader.onload = async e => {
+        try {
+          if (typeof pdfjsLib === 'undefined') throw new Error('PDF.js no cargó correctamente');
+          pdfjsLib.GlobalWorkerOptions.workerSrc =
+            'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+          const pdf = await pdfjsLib.getDocument({ data: e.target.result }).promise;
+          const pages = [];
+          for (let i = 1; i <= pdf.numPages; i++) {
+            const page = await pdf.getPage(i);
+            const content = await page.getTextContent();
+            pages.push(content.items.map(item => item.str).join(' '));
+          }
+          resolve(pages.join('\n'));
+        } catch (err) {
+          reject(new Error(`Error leyendo .pdf: ${err.message}`));
+        }
+      };
+      reader.onerror = () => reject(new Error('Error leyendo el archivo .pdf'));
+      reader.readAsArrayBuffer(file);
+
+    } else {
+      reject(new Error(`Formato no compatible: .${ext}. Use .txt, .docx o .pdf`));
+    }
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// F. Report renderer
+// ═══════════════════════════════════════════════════════════════════════════
+
+function scoreColor(pct) {
+  if (pct === null || pct === undefined) return '#999';
+  if (pct < 41) return '#e74c3c';
+  if (pct < 71) return '#e67e22';
+  if (pct < 91) return '#27ae60';
+  return '#1a8a4a';
+}
+
+function evalBadge(ev) {
+  if (ev === 'Sí')         return '<span class="eval-si">Sí</span>';
+  if (ev === 'No')         return '<span class="eval-no">No</span>';
+  return '<span class="eval-nc">No compete</span>';
+}
+
+function esc(str) {
+  return String(str || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+function renderizarInforme(informe) {
+  const { puntuacion, tipologia, puntosFuertes, areasMejora, resumenNarrativo, tablaDetallada } = informe;
+  const pct = puntuacion.puntuacionGeneral;
+  const badgeColor = scoreColor(pct);
+
+  // Section cards
+  const sectionCards = puntuacion.secciones.map(s => {
+    const c = scoreColor(s.porcentaje);
+    const w = s.porcentaje !== null ? s.porcentaje : 0;
+    return `
+      <div class="section-card">
+        <div class="section-card-name">S${s.seccion} · ${esc(s.nombre)}</div>
+        <div class="section-card-pct" style="color:${c}">${s.porcentaje !== null ? s.porcentaje + '%' : 'N/A'}</div>
+        <div class="bar-track"><div class="bar-fill" style="width:${w}%;background:${c}"></div></div>
+        <div class="section-counts">
+          <span class="c-si">✓ ${s.totalSi} Sí</span>
+          <span class="c-no">✗ ${s.totalNo} No</span>
+          <span class="c-nc">— ${s.totalNoCompete} NC</span>
+        </div>
+      </div>`;
+  }).join('');
+
+  // Puntos fuertes / áreas
+  const puntosLi = puntosFuertes.length
+    ? puntosFuertes.map(p => `<li>${esc(p)}</li>`).join('')
+    : '<li style="color:#999">Sin puntos fuertes identificados.</li>';
+
+  const areasLi = areasMejora.length
+    ? areasMejora.map(a => `<li>${esc(a)}</li>`).join('')
+    : '<li style="color:#999">Sin áreas de mejora identificadas.</li>';
+
+  // Detail table
+  let tableRows = '';
+  let lastSec = -1;
+  for (const item of tablaDetallada) {
+    if (item.seccion !== lastSec) {
+      const sec = puntuacion.secciones.find(s => s.seccion === item.seccion);
+      const nombre = sec ? sec.nombre : `Sección ${item.seccion}`;
+      tableRows += `<tr class="sec-head"><td colspan="3">Sección ${item.seccion} · ${esc(nombre)}</td></tr>`;
+      lastSec = item.seccion;
+    }
+    tableRows += `
+      <tr>
+        <td>${esc(item.item)}</td>
+        <td>${evalBadge(item.evaluacion)}</td>
+        <td>${esc(item.comentario)}</td>
+      </tr>`;
+  }
+
+  const html = `
+    <div class="panel">
+      <div class="score-hero">
+        <div class="score-badge" style="background:${badgeColor}">
+          <div class="score-num">${pct}<span style="font-size:1.2rem">%</span></div>
+          <div class="score-unit">Puntuación global</div>
+        </div>
+        <div class="score-meta">Documento clasificado como <strong>${esc(tipologia)}</strong></div>
+      </div>
+
+      <hr class="divider">
+
+      <div class="panel-title">Desglose por sección</div>
+      <div class="section-grid">${sectionCards}</div>
+
+      <hr class="divider">
+
+      <div class="panel-title">Análisis cualitativo</div>
+      <div class="analysis-grid">
+        <div class="analysis-box box-positivo">
+          <div class="analysis-box-title">
+            <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true">
+              <circle cx="7.5" cy="7.5" r="6.5" stroke="#27ae60" stroke-width="1.5"/>
+              <path d="M5 7.5l2 2 3-3" stroke="#27ae60" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            Puntos fuertes
+          </div>
+          <ul>${puntosLi}</ul>
+        </div>
+        <div class="analysis-box box-mejora">
+          <div class="analysis-box-title">
+            <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true">
+              <circle cx="7.5" cy="7.5" r="6.5" stroke="#e67e22" stroke-width="1.5"/>
+              <path d="M7.5 4.5v4M7.5 10.5v.5" stroke="#e67e22" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+            Áreas de mejora
+          </div>
+          <ul>${areasLi}</ul>
+        </div>
+      </div>
+
+      <div class="panel-title">Resumen narrativo</div>
+      <div class="narrativo">${esc(resumenNarrativo)}</div>
+
+      <hr class="divider">
+
+      <div class="panel-title">Tabla detallada · 41 ítems</div>
+      <div class="table-wrap">
+        <table class="detail">
+          <thead>
+            <tr>
+              <th style="width:44%">Ítem</th>
+              <th style="width:12%">Evaluación</th>
+              <th>Comentario</th>
+            </tr>
+          </thead>
+          <tbody>${tableRows}</tbody>
+        </table>
+      </div>
+    </div>`;
+
+  const panel = document.getElementById('report-panel');
+  panel.innerHTML = html;
+  panel.style.display = 'block';
+  panel.scrollIntoView({ behavior: 'smooth' });
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// G. UI helpers & handlers
+// ═══════════════════════════════════════════════════════════════════════════
+
+function setStep(index, state) {
+  const el = document.querySelector(`[data-step="${index}"]`);
+  if (!el) return;
+  el.className = `step ${state}`;
+
+  const iconEl = el.querySelector('.step-icon');
+  if (!iconEl) return;
+
+  if (state === 'running') {
+    iconEl.innerHTML = '<span class="spinner"></span>';
+  } else if (state === 'done') {
+    iconEl.innerHTML = '<span class="icon-done"></span>';
+  } else if (state === 'error') {
+    iconEl.innerHTML = '<span class="icon-error">✕</span>';
+  } else {
+    iconEl.innerHTML = '<span class="icon-idle"></span>';
+  }
+}
+
+function resetSteps() {
+  for (let i = 0; i < 8; i++) setStep(i, 'idle');
+}
+
+function showError(msg) {
+  document.getElementById('error-msg').textContent = msg;
+  document.getElementById('error-panel').style.display = 'block';
+  document.getElementById('error-panel').scrollIntoView({ behavior: 'smooth' });
+}
+
+function hideError() {
+  document.getElementById('error-panel').style.display = 'none';
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  // PDF.js worker
+  if (typeof pdfjsLib !== 'undefined') {
+    pdfjsLib.GlobalWorkerOptions.workerSrc =
+      'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  }
+
+  // Restore API key from localStorage
+  const apiKeyInput = document.getElementById('api-key-input');
+  const saved = localStorage.getItem('anthropic_api_key');
+  if (saved) apiKeyInput.value = saved;
+
+  apiKeyInput.addEventListener('input', () => {
+    localStorage.setItem('anthropic_api_key', apiKeyInput.value);
+  });
+
+  // Toggle key visibility
+  document.getElementById('toggle-key-btn').addEventListener('click', () => {
+    const btn = document.getElementById('toggle-key-btn');
+    if (apiKeyInput.type === 'password') {
+      apiKeyInput.type = 'text';
+      btn.textContent = 'Ocultar';
+    } else {
+      apiKeyInput.type = 'password';
+      btn.textContent = 'Mostrar';
+    }
+  });
+
+  // File upload
+  const fileInput  = document.getElementById('file-input');
+  const fileNameEl = document.getElementById('file-name');
+  const textarea   = document.getElementById('documento-textarea');
+
+  fileInput.addEventListener('change', async () => {
+    const file = fileInput.files[0];
+    if (!file) return;
+    fileNameEl.textContent = `Cargando ${file.name}…`;
+    try {
+      const texto = await leerArchivo(file);
+      textarea.value = texto;
+      fileNameEl.textContent = `✓ ${file.name} cargado`;
+    } catch (err) {
+      fileNameEl.textContent = `✗ ${err.message}`;
+    }
+  });
+
+  // Evaluar
+  document.getElementById('evaluar-btn').addEventListener('click', async () => {
+    const apiKey = apiKeyInput.value.trim();
+    if (!apiKey) { showError('Introduce tu Anthropic API Key antes de evaluar.'); return; }
+
+    const texto = textarea.value.trim();
+    if (!texto) { showError('Introduce o carga un documento para evaluar.'); return; }
+
+    hideError();
+    document.getElementById('report-panel').style.display = 'none';
+    document.getElementById('report-panel').innerHTML = '';
+    document.getElementById('progress-panel').style.display = 'block';
+    document.getElementById('progress-panel').scrollIntoView({ behavior: 'smooth' });
+    resetSteps();
+
+    const btn = document.getElementById('evaluar-btn');
+    btn.disabled = true;
+
+    try {
+      const informe = await ejecutarPipeline(texto, apiKey);
+      renderizarInforme(informe);
+    } catch (err) {
+      // Mark any still-running steps as error
+      document.querySelectorAll('.step.running').forEach(el => setStep(Number(el.dataset.step), 'error'));
+      showError(err.message);
+    } finally {
+      btn.disabled = false;
+    }
+  });
+});
+</script>
+</body>
+</html>
