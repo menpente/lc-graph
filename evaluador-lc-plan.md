@@ -77,7 +77,93 @@ const porcentaje = evaluables > 0 ? Math.round((totalSi / evaluables) * 1000) / 
 - Mammoth (docx): `https://cdn.jsdelivr.net/npm/mammoth@1.6.0/mammoth.browser.min.js`
 - PDF.js: `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js`
 - PDF.js worker: `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js`
-- Google Fonts (Inter): standard CDN link
+- Google Fonts (Open Sans): `https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;600;700&display=swap`
+
+## Visual design — Cálamo & Cran aesthetic
+
+Reference: https://www.calamoycran.com/cursos/procesamiento-del-lenguaje-natural/
+
+### Color palette
+| Token | Value | Usage |
+|-------|-------|-------|
+| `--color-primary` | `#2ea3f2` | Links, buttons, accents, step icons, progress |
+| `--color-text` | `#333333` | Headings |
+| `--color-text-body` | `#666666` | Body text, labels, muted content |
+| `--color-text-muted` | `#999999` | Secondary/placeholder text |
+| `--color-border` | `#e2e2e2` | Panel borders, table dividers, inputs |
+| `--color-border-light` | `#eeeeee` | Subtle row separators |
+| `--color-bg` | `#ffffff` | Page background |
+| `--color-bg-section` | `#f9f9f9` | Alternating section backgrounds |
+| `--color-error` | `#e74c3c` | Errors |
+| `--color-success` | `#27ae60` | Sí evaluations, puntos fuertes |
+| `--color-warning` | `#e67e22` | Áreas de mejora |
+
+### Typography
+- **Font family**: `'Open Sans', Arial, sans-serif` (not Inter)
+- **Font weight**: `500` throughout (Open Sans medium) — heavier than typical body weight
+- **Line height**: `1.7em` for body text
+- **Sizes**: H1 30px · H2 26px · H3 22px · H4 18px · body 14px
+- All headings at weight 500 (not bold 700), color `#333`
+- Links: `#2ea3f2`, no underline
+
+### Layout
+- Max-width container: **1080px**, centered, `80%` width on desktop
+- Clean white background, no dark sections or gradients
+- Consistent section padding; generous whitespace between elements
+- Paragraph margin-bottom: `30px`
+
+### UI components
+
+**Buttons**
+- Font size: `16px`, weight `500`
+- Border: `2px solid #2ea3f2`
+- Border-radius: `3px` (very slight — nearly square)
+- Primary: `background #2ea3f2`, white text
+- Hover: slight `rgba(0,0,0,0.05)` overlay
+- Transition: `0.2s`
+
+**Inputs / textarea**
+- Border: `1px solid #e2e2e2`
+- Border-radius: `3px`
+- Font: `14px Open Sans`
+- Focus: border-color `#2ea3f2`, no box-shadow
+
+**Panels / cards**
+- White background, `1px solid #e2e2e2` border
+- Border-radius: `3px`
+- Minimal shadow (or none) — flat aesthetic
+- Section titles in `#333`, `500` weight, `18px`
+
+**Table**
+- Clean, no outer border
+- `1px solid #eeeeee` row separators
+- Header row: `background #f9f9f9`, text `#999`, `12px`, uppercase, letter-spacing
+- Cell padding: `10px 12px`
+- Hover row: `background #f9f9f9`
+
+**Score badge**
+- Circle, background `#2ea3f2` (primary blue) unless score-coded:
+  - < 41% → `#e74c3c` (red)
+  - 41–70% → `#e67e22` (orange, not amber)
+  - 71–90% → `#27ae60` (green)
+  - 91%+ → `#1a8a4a` (dark green)
+- White text, weight `700`
+
+**Progress steps**
+- Running: left border `3px solid #2ea3f2`, background `#f0f8fe`
+- Done: left border `3px solid #27ae60`, background `#f0faf4`
+- Error: left border `3px solid #e74c3c`, background `#fdf4f4`
+- Idle: no background, text `#999`
+- Spinner: CSS `border` animation in `#2ea3f2` (no Unicode glyphs)
+
+**Eval badges (table)**
+- `Sí`: background `#eafaf1`, color `#27ae60`, border `1px solid #a9dfbf`
+- `No`: background `#fdf0ef`, color `#e74c3c`, border `1px solid #f5b7b1`
+- `No compete`: background `#f4f4f4`, color `#999`, border `1px solid #ddd`
+- All: `border-radius 3px`, `font-size 12px`, `padding 2px 8px`
+
+### Tone
+Clean, professional, educational. No gradients, no shadows (or very subtle). The `#2ea3f2` blue is the only accent color — everything else is grays and whites.
 
 ## Report rendering
 
