@@ -590,7 +590,7 @@
       <path d="M5 7h16M5 11h12M5 15h14M5 19h9" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
     </svg>
     <h1>Evaluador de Lenguaje Claro</h1>
-    <span class="tagline">Cálamo &amp; Cran · Evaluación automática de documentos administrativos</span>
+    <span class="tagline">Cálamo &amp; Cran · Evaluación automática de documentos administrativos · Groq</span>
   </div>
 </header>
 
@@ -600,7 +600,7 @@
   <div class="panel" id="config-panel">
     <div class="panel-title">Configuración</div>
     <div class="key-row">
-      <input type="password" id="api-key-input" placeholder="sk-ant-…  (Anthropic API Key)" autocomplete="off" style="font-family:monospace">
+      <input type="password" id="api-key-input" placeholder="gsk_…  (Groq API Key)" autocomplete="off" style="font-family:monospace">
       <button class="btn btn-ghost" id="toggle-key-btn" style="white-space:nowrap">Mostrar</button>
     </div>
     <p class="key-hint">La clave se guarda en localStorage de tu navegador. Las llamadas a la API se realizan directamente desde tu equipo.</p>
@@ -943,14 +943,12 @@ function limpiarJson(texto) {
   return texto.trim();
 }
 
-async function llamarClaude(apiKey, prompt, { model = 'claude-sonnet-4-20250514', maxTokens = 4096, temperature = 0 } = {}) {
-  const resp = await fetch('https://api.anthropic.com/v1/messages', {
+async function llamarClaude(apiKey, prompt, { model = 'llama-3.3-70b-versatile', maxTokens = 4096, temperature = 0 } = {}) {
+  const resp = await fetch('https://api.groq.com/openai/v1/chat/completions', {
     method: 'POST',
     headers: {
-      'x-api-key': apiKey,
-      'anthropic-version': '2023-06-01',
-      'anthropic-dangerous-direct-browser-access': 'true',
-      'content-type': 'application/json',
+      'Authorization': `Bearer ${apiKey}`,
+      'Content-Type': 'application/json',
     },
     body: JSON.stringify({
       model,
@@ -966,7 +964,7 @@ async function llamarClaude(apiKey, prompt, { model = 'claude-sonnet-4-20250514'
   }
 
   const data = await resp.json();
-  const raw = data.content[0].text;
+  const raw = data.choices[0].message.content;
 
   try {
     return JSON.parse(limpiarJson(raw));
@@ -982,7 +980,7 @@ async function llamarClaude(apiKey, prompt, { model = 'claude-sonnet-4-20250514'
 async function nodoClasificador(estado, apiKey) {
   setStep(0, 'running');
   try {
-    const res = await llamarClaude(apiKey, PROMPT_CLASIFICADOR(estado.texto), { maxTokens: 500 });
+    const res = await llamarClaude(apiKey, PROMPT_CLASIFICADOR(estado.texto), { model: 'llama-3.3-70b-versatile', maxTokens: 500 });
     estado.tipologia = res.tipologia;
     estado.justificacionTipologia = res.justificacion;
     setStep(0, 'done');
@@ -1079,7 +1077,7 @@ async function nodoSintetizador(estado, apiKey) {
       itemsNoArr.length > 0 ? itemsNoArr.join('\n') : '(ningún ítem con No)',
     );
 
-    const res = await llamarClaude(apiKey, prompt, { temperature: 0.3, maxTokens: 2048 });
+    const res = await llamarClaude(apiKey, prompt, { model: 'llama-3.3-70b-versatile', temperature: 0.3, maxTokens: 2048 });
 
     // Build tabla_detallada sorted by section
     const tablaDetallada = [];
@@ -1367,11 +1365,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Restore API key from localStorage
   const apiKeyInput = document.getElementById('api-key-input');
-  const saved = localStorage.getItem('anthropic_api_key');
+  const saved = localStorage.getItem('groq_api_key');
   if (saved) apiKeyInput.value = saved;
 
   apiKeyInput.addEventListener('input', () => {
-    localStorage.setItem('anthropic_api_key', apiKeyInput.value);
+    localStorage.setItem('groq_api_key', apiKeyInput.value);
   });
 
   // Toggle key visibility
