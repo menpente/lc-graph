@@ -19,7 +19,7 @@ import json
 import operator
 from typing import Annotated, Any, TypedDict
 
-from langchain_anthropic import ChatAnthropic
+from langchain_groq import ChatGroq
 from langchain_core.messages import HumanMessage, SystemMessage
 from langgraph.graph import END, StateGraph
 
@@ -84,7 +84,7 @@ def _limpiar_json(texto: str) -> str:
     return texto.strip()
 
 
-def _llamar_llm(llm: ChatAnthropic, prompt: str) -> dict:
+def _llamar_llm(llm: ChatGroq, prompt: str) -> dict:
     """Llama al LLM y parsea la respuesta JSON."""
     response = llm.invoke([HumanMessage(content=prompt)])
     return json.loads(_limpiar_json(response.content))
@@ -97,7 +97,7 @@ def _llamar_llm(llm: ChatAnthropic, prompt: str) -> dict:
 
 def nodo_clasificador(state: EstadoPipeline) -> dict:
     """SA-0: Clasifica el tipo de documento."""
-    llm = ChatAnthropic(model="claude-sonnet-4-20250514", temperature=0, max_tokens=500)
+    llm = ChatGroq(model="llama-3.3-70b-versatile", temperature=0, max_tokens=500)
     prompt = PROMPT_CLASIFICADOR.format(texto=state["texto"])
     resultado = _llamar_llm(llm, prompt)
     parsed = ResultadoClasificacion(**resultado)
@@ -111,9 +111,7 @@ def _crear_nodo_evaluador(seccion: int):
     """Factory: crea un nodo evaluador para una sección específica."""
 
     def nodo_evaluador(state: EstadoPipeline) -> dict:
-        llm = ChatAnthropic(
-            model="claude-sonnet-4-20250514", temperature=0, max_tokens=4096
-        )
+        llm = ChatGroq(model="llama-3.3-70b-versatile", temperature=0, max_tokens=4096)
         prompt = PROMPTS_SECCIONES[seccion].format(
             texto=state["texto"],
             tipologia=state["tipologia"],
@@ -197,7 +195,7 @@ def nodo_calculador(state: EstadoPipeline) -> dict:
 
 def nodo_sintetizador(state: EstadoPipeline) -> dict:
     """SA-6b: Genera resumen narrativo con LLM."""
-    llm = ChatAnthropic(model="claude-sonnet-4-20250514", temperature=0.3, max_tokens=2048)
+    llm = ChatGroq(model="llama-3.3-70b-versatile", temperature=0.3, max_tokens=2048)
 
     puntuacion = state["puntuacion"]
     resultados = state["resultados_secciones"]

@@ -4,13 +4,13 @@
 
 [![Python 3.9+](https://img.shields.io/badge/python-3.9%2B-blue)](https://www.python.org)
 [![LangGraph](https://img.shields.io/badge/LangGraph-multi--agent-blueviolet)](https://github.com/langchain-ai/langgraph)
-[![Claude](https://img.shields.io/badge/Claude-Sonnet-orange)](https://www.anthropic.com)
+[![Groq](https://img.shields.io/badge/Groq-llama--3.3--70b-orange)](https://groq.com)
 [![MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 [![Live Demo](https://img.shields.io/badge/demo-live-brightgreen)](https://rubendelafuente.github.io/lc-graph/)
 
 ## Live demo
 
-**[→ Try it in your browser](https://rubendelafuente.github.io/lc-graph/)** — no installation, no server. Bring your own Anthropic API key.
+**[→ Try it in your browser](https://rubendelafuente.github.io/lc-graph/)** — no installation, no server. Bring your own Groq API key.
 
 ## How it works
 
@@ -73,8 +73,8 @@ Sec   Ítem                                          Eval.        Comentario
 ## Quickstart
 
 ```bash
-pip install langchain-anthropic langgraph pydantic
-export ANTHROPIC_API_KEY=sk-ant-...
+pip install langchain-groq langgraph pydantic
+export GROQ_API_KEY=gsk_...
 
 # Run with the built-in example document
 python -m evaluador_lc.main
@@ -109,4 +109,4 @@ print(formatear_informe(resultado["informe_final"]))
 
 ## Tech stack
 
-[LangGraph](https://github.com/langchain-ai/langgraph) · [LangChain Anthropic](https://python.langchain.com/docs/integrations/chat/anthropic/) · [Pydantic](https://docs.pydantic.dev/) · [Claude Sonnet](https://www.anthropic.com/claude)
+[LangGraph](https://github.com/langchain-ai/langgraph) · [LangChain Groq](https://python.langchain.com/docs/integrations/chat/groq/) · [Pydantic](https://docs.pydantic.dev/) · [Llama 3.3 70b via Groq](https://groq.com)

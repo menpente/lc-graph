@@ -15,11 +15,11 @@ python -m evaluador_lc.main documento.txt
 cat documento.txt | python -m evaluador_lc.main
 ```
 
-Requires `ANTHROPIC_API_KEY` set in the environment. The package is imported as `evaluador_lc` (the directory is `lc-graph` but the module lives under `evaluador_lc`).
+Requires `GROQ_API_KEY` set in the environment. The package is imported as `evaluador_lc` (the directory is `lc-graph` but the module lives under `evaluador_lc`).
 
 ## Architecture
 
-This is a **LangGraph multi-agent pipeline** for evaluating Spanish administrative documents against "plain language" (lenguaje claro) criteria. The pipeline uses `claude-sonnet-4-20250514` exclusively.
+This is a **LangGraph multi-agent pipeline** for evaluating Spanish administrative documents against "plain language" (lenguaje claro) criteria. The pipeline uses `llama-3.3-70b-versatile` via Groq exclusively.
 
 ### Graph flow (`pipeline.py`)
 
