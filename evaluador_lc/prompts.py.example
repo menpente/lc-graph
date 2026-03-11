@@ -1,0 +1,14 @@
+# Copy this file to prompts.py and fill in the prompts.
+# Contact the author to obtain the actual prompt content.
+
+PROMPT_CLASIFICADOR = ""
+
+PROMPT_SINTETIZADOR = ""
+
+PROMPTS_SECCIONES = {
+    1: "",
+    2: "",
+    3: "",
+    4: "",
+    5: "",
+}

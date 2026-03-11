@@ -8,6 +8,7 @@ __pycache__/
 dist/
 build/
 .eggs/
+evaluador_lc/prompts.py
 
 # Environments
 .env
