@@ -6,11 +6,11 @@
 [![LangGraph](https://img.shields.io/badge/LangGraph-multi--agent-blueviolet)](https://github.com/langchain-ai/langgraph)
 [![Groq](https://img.shields.io/badge/Groq-llama--3.3--70b-orange)](https://groq.com)
 [![MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
-[![Live Demo](https://img.shields.io/badge/demo-live-brightgreen)](https://rubendelafuente.github.io/lc-graph/)
+[![Live Demo](https://img.shields.io/badge/demo-live-brightgreen)](https://menpente.github.io/lc-graph/)
 
 ## Live demo
 
-**[→ Try it in your browser](https://rubendelafuente.github.io/lc-graph/)** — no installation, no server. Bring your own Groq API key.
+**[→ Try it in your browser](https://menpente.github.io/lc-graph/)** — no installation, no server. Bring your own Groq API key.
 
 ## How it works
 

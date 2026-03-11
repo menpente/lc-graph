@@ -1405,7 +1405,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Evaluar
   document.getElementById('evaluar-btn').addEventListener('click', async () => {
     const apiKey = apiKeyInput.value.trim();
-    if (!apiKey) { showError('Introduce tu Anthropic API Key antes de evaluar.'); return; }
+    if (!apiKey) { showError('Introduce tu Groq API Key antes de evaluar.'); return; }
 
     const texto = textarea.value.trim();
     if (!texto) { showError('Introduce o carga un documento para evaluar.'); return; }
