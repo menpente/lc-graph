@@ -55,17 +55,11 @@ async def test_do_evaluate_returns_formatted_string():
 
 async def test_do_evaluate_posts_to_configured_url():
     from evaluador_lc.mcp_server import _do_evaluate
-    import evaluador_lc.mcp_server as mod
 
     mock_client = _make_mock_client(_make_informe_dict())
 
-    original_url = mod.FASTAPI_URL
-    mod.FASTAPI_URL = "http://test-host:9000"
-    try:
-        with patch("evaluador_lc.mcp_server.httpx.AsyncClient", return_value=mock_client):
-            await _do_evaluate("doc text")
-    finally:
-        mod.FASTAPI_URL = original_url
+    with patch("evaluador_lc.mcp_server.httpx.AsyncClient", return_value=mock_client):
+        await _do_evaluate("doc text", url="http://test-host:9000")
 
     mock_client.post.assert_called_once_with(
         "http://test-host:9000/evaluate", json={"texto": "doc text"}

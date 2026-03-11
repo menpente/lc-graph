@@ -11,10 +11,11 @@ FASTAPI_URL = os.getenv("FASTAPI_URL", "http://localhost:8000")
 mcp = FastMCP("evaluador-lc")
 
 
-async def _do_evaluate(texto: str) -> str:
+async def _do_evaluate(texto: str, url: str = None) -> str:
     """Core HTTP logic — separated from @mcp.tool() for testability."""
+    effective_url = url if url is not None else FASTAPI_URL
     async with httpx.AsyncClient(timeout=120.0) as client:
-        r = await client.post(f"{FASTAPI_URL}/evaluate", json={"texto": texto})
+        r = await client.post(f"{effective_url}/evaluate", json={"texto": texto})
         r.raise_for_status()
         informe = InformeFinal(**r.json())
         return formatear_informe(informe)
