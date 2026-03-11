@@ -1,7 +1,10 @@
 import asyncio
 
+from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
+
+load_dotenv()
 
 from evaluador_lc.models import InformeFinal
 from evaluador_lc.pipeline import crear_grafo
