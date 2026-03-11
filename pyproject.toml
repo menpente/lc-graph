@@ -11,6 +11,16 @@ dependencies = [
     "langchain-groq",
     "langgraph",
     "pydantic",
+    "fastapi",
+    "uvicorn[standard]",
+    "httpx",
+    "mcp",
+]
+
+[project.optional-dependencies]
+test = [
+    "pytest",
+    "pytest-asyncio",
 ]
 
 [project.urls]
