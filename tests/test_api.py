@@ -50,10 +50,8 @@ def test_evaluate_returns_informe_final(client):
     informe = _make_informe()
     mock_result = {"informe_final": informe}
 
-    with patch("evaluador_lc.api.crear_grafo") as mock_crear:
-        mock_grafo = MagicMock()
+    with patch("evaluador_lc.api._grafo") as mock_grafo:
         mock_grafo.invoke.return_value = mock_result
-        mock_crear.return_value = mock_grafo
 
         r = client.post("/evaluate", json={"texto": "Texto de prueba"})
 
@@ -67,10 +65,8 @@ def test_evaluate_calls_pipeline_with_texto(client):
     informe = _make_informe()
     mock_result = {"informe_final": informe}
 
-    with patch("evaluador_lc.api.crear_grafo") as mock_crear:
-        mock_grafo = MagicMock()
+    with patch("evaluador_lc.api._grafo") as mock_grafo:
         mock_grafo.invoke.return_value = mock_result
-        mock_crear.return_value = mock_grafo
 
         client.post("/evaluate", json={"texto": "Mi documento"})
 
@@ -89,10 +85,8 @@ def test_evaluate_pipeline_error_returns_500():
     # instead of re-raising the exception in the test process.
     error_client = TestClient(app, raise_server_exceptions=False)
 
-    with patch("evaluador_lc.api.crear_grafo") as mock_crear:
-        mock_grafo = MagicMock()
+    with patch("evaluador_lc.api._grafo") as mock_grafo:
         mock_grafo.invoke.side_effect = RuntimeError("LLM failure")
-        mock_crear.return_value = mock_grafo
 
         r = error_client.post("/evaluate", json={"texto": "Texto"})
 
