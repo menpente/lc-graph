@@ -32,11 +32,17 @@ from evaluador_lc.models import (
     ResultadoClasificacion,
     ResultadoSeccion,
 )
-from evaluador_lc.prompts import (
-    PROMPT_CLASIFICADOR,
-    PROMPT_SINTETIZADOR,
-    PROMPTS_SECCIONES,
-)
+try:
+    from evaluador_lc.prompts import (
+        PROMPT_CLASIFICADOR,
+        PROMPT_SINTETIZADOR,
+        PROMPTS_SECCIONES,
+    )
+except ImportError:
+    raise RuntimeError(
+        "evaluador_lc/prompts.py not found. "
+        "Copy prompts.py.example to prompts.py and fill in the prompt content."
+    )
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
