@@ -15,6 +15,7 @@ dependencies = [
     "uvicorn[standard]",
     "httpx",
     "mcp",
+    "langsmith",
 ]
 
 [project.optional-dependencies]
