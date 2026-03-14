@@ -27,7 +27,6 @@ def test_limpiar_json_strips_leading_whitespace():
 def test_limpiar_json_fence_no_newline():
     # Edge case: fence immediately followed by content with no newline
     raw = "```{\"key\": \"value\"}```"
-    result = _limpiar_json(raw)
     assert _limpiar_json(raw) == '{"key": "value"}'
 
 
