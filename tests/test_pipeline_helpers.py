@@ -1,5 +1,3 @@
-import pytest
-
 from evaluador_lc.models import Evaluacion, ItemEvaluado, ResultadoSeccion
 from evaluador_lc.pipeline import _limpiar_json, _merge_resultados
 
@@ -30,7 +28,7 @@ def test_limpiar_json_fence_no_newline():
     # Edge case: fence immediately followed by content with no newline
     raw = "```{\"key\": \"value\"}```"
     result = _limpiar_json(raw)
-    assert "key" in result  # should at minimum expose the JSON content
+    assert _limpiar_json(raw) == '{"key": "value"}'
 
 
 # ── _merge_resultados ─────────────────────────────────────────────────────────
