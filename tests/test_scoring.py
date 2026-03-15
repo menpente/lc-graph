@@ -3,8 +3,6 @@
 Tests for nodo_calculador (SA-6a): pure-Python scoring logic.
 No LLM calls. Always runs in CI.
 """
-import pytest
-
 from evaluador_lc.models import Evaluacion, ItemEvaluado, ResultadoSeccion
 from evaluador_lc.pipeline import nodo_calculador
 
@@ -84,7 +82,7 @@ def test_global_score_is_weighted_across_sections():
     s2_items = [_make_item(2, Evaluacion.SI), _make_item(2, Evaluacion.NO)]
     state = _state([_make_seccion(1, s1_items), _make_seccion(2, s2_items)])
     result = nodo_calculador(state)
-    assert result["puntuacion"].puntuacion_general == round(4 / 6 * 100, 1)
+    assert result["puntuacion"].puntuacion_general == 66.7
 
 
 # ── Section metadata ──────────────────────────────────────────────────────────
