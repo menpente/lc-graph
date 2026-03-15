@@ -1,0 +1,6 @@
+{
+  "id": "resolucion_01",
+  "description": "Resolución de concesión de ayuda para adquisición de vivienda. Lenguaje administrativo formal con estructura numerada.",
+  "expected_tipologia": "resolución",
+  "notes": "Human-confirmed classification. Document uses numbered PRIMERO/SEGUNDO/TERCERO structure, typical of administrative resolutions."
+}
