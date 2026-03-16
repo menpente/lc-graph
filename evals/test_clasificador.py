@@ -16,7 +16,7 @@ from evaluador_lc.pipeline import nodo_clasificador
 
 @pytest.mark.eval
 def test_clasificador_resolucion_01(golden_resolucion_01):
-    """SA-0 should classify a housing-aid resolution as 'resolución'."""
+    """SA-0 should classify a housing-aid resolution as 'resolución' with a non-empty justification."""
     texto = golden_resolucion_01["texto"]
     expected_tipologia = golden_resolucion_01["meta"]["expected_tipologia"]
 
@@ -28,13 +28,5 @@ def test_clasificador_resolucion_01(golden_resolucion_01):
         f"got '{result['tipologia']}'. "
         f"Justificación: {result.get('justificacion_tipologia', 'N/A')}"
     )
-
-
-@pytest.mark.eval
-def test_clasificador_returns_justificacion(golden_resolucion_01):
-    """SA-0 should always return a non-empty justificación."""
-    state = {"texto": golden_resolucion_01["texto"]}
-    result = nodo_clasificador(state)
-
     assert isinstance(result.get("justificacion_tipologia"), str)
     assert len(result["justificacion_tipologia"]) > 0
