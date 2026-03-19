@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>lc-graph · CDTI</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800;900&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --navy:   #0D1F3C;
+    --blue:   #1A56DB;
+    --cyan:   #06B6D4;
+    --orange: #F97316;
+    --red:    #DC2626;
+    --white:  #FFFFFF;
+    --gray:   #F1F5F9;
+    --muted:  #94A3B8;
+    --text:   #1E293B;
+  }
+
+  html, body {
+    width: 100%; height: 100%;
+    font-family: 'Inter', system-ui, sans-serif;
+    background: #0a0f1e;
+    overflow: hidden;
+  }
+
+  /* ── Slide container ── */
+  .deck {
+    width: 100vw; height: 100vh;
+    display: flex; align-items: center; justify-content: center;
+    position: relative;
+  }
+
+  .slide {
+    display: none;
+    width: 100vw; height: 100vh;
+    position: absolute; top: 0; left: 0;
+    overflow: hidden;
+  }
+  .slide.active { display: flex; }
+
+  /* ── Navigation ── */
+  .nav {
+    position: fixed; bottom: 2rem; right: 2.5rem;
+    display: flex; gap: 0.75rem; z-index: 100;
+  }
+  .nav button {
+    width: 2.5rem; height: 2.5rem;
+    border: 1px solid rgba(255,255,255,0.25);
+    border-radius: 50%;
+    background: rgba(255,255,255,0.08);
+    color: white; font-size: 1rem; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: background 0.2s;
+    backdrop-filter: blur(6px);
+  }
+  .nav button:hover { background: rgba(255,255,255,0.18); }
+
+  .slide-counter {
+    position: fixed; bottom: 2.35rem; left: 2.5rem;
+    color: rgba(255,255,255,0.35); font-size: 0.75rem;
+    letter-spacing: 0.08em; z-index: 100;
+  }
+
+  /* ═══════════════════════════════════════
+     SLIDE 1 — THE PROBLEM
+  ═══════════════════════════════════════ */
+  #s1 {
+    background: var(--navy);
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 5vw 7vw;
+  }
+
+  #s1 .kicker {
+    font-size: clamp(0.65rem, 1vw, 0.8rem);
+    font-weight: 600;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--cyan);
+    margin-bottom: 1.5rem;
+  }
+
+  #s1 h1 {
+    font-size: clamp(2rem, 4.5vw, 4rem);
+    font-weight: 900;
+    color: var(--white);
+    line-height: 1.1;
+    max-width: 18ch;
+    margin-bottom: 3rem;
+  }
+
+  #s1 h1 em {
+    font-style: normal;
+    color: var(--orange);
+  }
+
+  #s1 .stats {
+    display: flex;
+    gap: 4vw;
+    margin-bottom: 3.5rem;
+  }
+  #s1 .stat .num {
+    font-size: clamp(2.5rem, 5vw, 4.5rem);
+    font-weight: 900;
+    line-height: 1;
+    color: var(--white);
+  }
+  #s1 .stat .num span { color: var(--orange); }
+  #s1 .stat .label {
+    font-size: clamp(0.75rem, 1.1vw, 0.9rem);
+    color: var(--muted);
+    margin-top: 0.4rem;
+    max-width: 18ch;
+    line-height: 1.4;
+  }
+
+  #s1 .divider {
+    width: 100%;
+    height: 1px;
+    background: linear-gradient(to right, rgba(255,255,255,0.12), transparent);
+    margin-bottom: 2rem;
+  }
+
+  #s1 .pain-points {
+    display: flex; gap: 2vw; flex-wrap: wrap;
+  }
+  #s1 .pain {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-left: 3px solid var(--red);
+    border-radius: 6px;
+    padding: 0.9rem 1.2rem;
+    font-size: clamp(0.75rem, 1.1vw, 0.88rem);
+    color: #CBD5E1;
+    line-height: 1.5;
+    max-width: 22ch;
+  }
+  #s1 .pain strong { color: var(--white); display: block; margin-bottom: 0.2rem; }
+
+  /* Right-side accent */
+  #s1 .accent-bar {
+    position: absolute;
+    right: 0; top: 0; bottom: 0;
+    width: 4px;
+    background: linear-gradient(to bottom, var(--orange), var(--red), transparent);
+  }
+  #s1 .bg-circle {
+    position: absolute;
+    right: -10vw; top: -10vw;
+    width: 55vw; height: 55vw;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(249,115,22,0.06) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  /* ═══════════════════════════════════════
+     SLIDE 2 — THE SOLUTION
+  ═══════════════════════════════════════ */
+  #s2 {
+    background: #0B1929;
+    flex-direction: row;
+    align-items: stretch;
+  }
+
+  #s2 .left {
+    flex: 0 0 42%;
+    background: var(--blue);
+    background: linear-gradient(135deg, #1A56DB 0%, #0E3A8C 100%);
+    padding: 5vw 4vw;
+    display: flex; flex-direction: column; justify-content: center;
+    position: relative;
+    overflow: hidden;
+  }
+  #s2 .left::after {
+    content: '';
+    position: absolute;
+    right: -3rem; top: 50%; transform: translateY(-50%);
+    width: 6rem; height: 6rem;
+    background: #0B1929;
+    clip-path: polygon(0 50%, 100% 0, 100% 100%);
+  }
+
+  #s2 .left .kicker {
+    font-size: clamp(0.6rem, 0.9vw, 0.75rem);
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.5);
+    margin-bottom: 1.2rem;
+  }
+  #s2 .left h2 {
+    font-size: clamp(1.5rem, 3vw, 2.5rem);
+    font-weight: 900;
+    color: var(--white);
+    line-height: 1.15;
+    margin-bottom: 1.8rem;
+  }
+  #s2 .left h2 em {
+    font-style: normal;
+    color: #93C5FD;
+  }
+
+  #s2 .left .features {
+    display: flex; flex-direction: column; gap: 1rem;
+  }
+  #s2 .feat {
+    display: flex; gap: 0.75rem; align-items: flex-start;
+  }
+  #s2 .feat-icon {
+    flex: 0 0 2rem; height: 2rem;
+    background: rgba(255,255,255,0.12);
+    border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1rem;
+  }
+  #s2 .feat-text strong {
+    display: block;
+    font-size: clamp(0.75rem, 1.1vw, 0.9rem);
+    color: var(--white);
+    margin-bottom: 0.15rem;
+  }
+  #s2 .feat-text span {
+    font-size: clamp(0.65rem, 0.9vw, 0.8rem);
+    color: rgba(255,255,255,0.55);
+    line-height: 1.4;
+  }
+
+  #s2 .right {
+    flex: 1;
+    padding: 4vw 5vw;
+    display: flex; flex-direction: column; justify-content: center;
+    gap: 2rem;
+  }
+
+  #s2 .right .pipeline-title {
+    font-size: clamp(0.65rem, 0.9vw, 0.75rem);
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 0.5rem;
+  }
+
+  /* Pipeline diagram */
+  .pipeline {
+    display: flex; flex-direction: column; gap: 0.5rem;
+  }
+
+  .pipe-row {
+    display: flex; align-items: center; gap: 0.75rem;
+  }
+  .pipe-node {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 6px;
+    padding: 0.55rem 0.9rem;
+    font-size: clamp(0.65rem, 0.95vw, 0.8rem);
+    color: #CBD5E1;
+    white-space: nowrap;
+    line-height: 1.3;
+  }
+  .pipe-node .tag {
+    font-size: 0.6rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    color: var(--cyan);
+    text-transform: uppercase;
+    display: block;
+  }
+  .pipe-node .desc { color: #94A3B8; font-size: 0.7rem; }
+  .pipe-node.highlight {
+    border-color: rgba(6,182,212,0.4);
+    background: rgba(6,182,212,0.06);
+  }
+  .pipe-node.highlight .tag { color: var(--cyan); }
+
+  .pipe-parallel {
+    display: flex; flex-direction: column; gap: 0.35rem;
+    flex: 1;
+  }
+  .pipe-parallel .pipe-node {
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .pipe-badge {
+    font-size: 0.6rem;
+    font-weight: 700;
+    padding: 0.15rem 0.4rem;
+    border-radius: 999px;
+    background: rgba(249,115,22,0.15);
+    color: var(--orange);
+    letter-spacing: 0.05em;
+  }
+  .pipe-arrow {
+    color: rgba(255,255,255,0.2); font-size: 0.9rem;
+  }
+
+  .pipe-divider {
+    width: 2px; align-self: stretch;
+    background: linear-gradient(to bottom, var(--cyan), var(--blue));
+    border-radius: 2px;
+    margin: 0 0.1rem;
+  }
+
+  .llm-badge {
+    font-size: clamp(0.6rem, 0.85vw, 0.72rem);
+    background: rgba(249,115,22,0.1);
+    border: 1px solid rgba(249,115,22,0.25);
+    color: var(--orange);
+    border-radius: 4px;
+    padding: 0.2rem 0.5rem;
+    display: inline-flex; align-items: center; gap: 0.3rem;
+  }
+  .llm-badge::before { content: '⚡'; }
+
+  .metric-row {
+    display: flex; gap: 1.5rem;
+  }
+  .metric {
+    flex: 1;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 8px;
+    padding: 0.9rem 1rem;
+    text-align: center;
+  }
+  .metric .val {
+    font-size: clamp(1.5rem, 2.5vw, 2rem);
+    font-weight: 900;
+    color: var(--white);
+    line-height: 1;
+  }
+  .metric .val span { color: var(--cyan); }
+  .metric .lbl {
+    font-size: clamp(0.6rem, 0.85vw, 0.72rem);
+    color: var(--muted);
+    margin-top: 0.3rem;
+    line-height: 1.3;
+  }
+
+  /* ═══════════════════════════════════════
+     SLIDE 3 — SCALE & SOVEREIGNTY
+  ═══════════════════════════════════════ */
+  #s3 {
+    background: #060D1A;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 5vw 7vw;
+    position: relative;
+    overflow: hidden;
+  }
+
+  #s3 .bg-grid {
+    position: absolute; inset: 0;
+    background-image:
+      linear-gradient(rgba(26,86,219,0.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(26,86,219,0.05) 1px, transparent 1px);
+    background-size: 4rem 4rem;
+    pointer-events: none;
+  }
+  #s3 .bg-glow {
+    position: absolute;
+    bottom: -20vh; right: -10vw;
+    width: 60vw; height: 60vw;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(6,182,212,0.07) 0%, transparent 65%);
+    pointer-events: none;
+  }
+
+  #s3 .kicker {
+    font-size: clamp(0.65rem, 1vw, 0.8rem);
+    font-weight: 600;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--cyan);
+    margin-bottom: 1.2rem;
+    position: relative;
+  }
+
+  #s3 h2 {
+    font-size: clamp(1.8rem, 4vw, 3.5rem);
+    font-weight: 900;
+    color: var(--white);
+    line-height: 1.1;
+    max-width: 24ch;
+    margin-bottom: 3rem;
+    position: relative;
+  }
+  #s3 h2 em { font-style: normal; color: var(--cyan); }
+
+  #s3 .grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5vw;
+    width: 100%;
+    margin-bottom: 2.5rem;
+    position: relative;
+  }
+
+  #s3 .card {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 10px;
+    padding: 1.5rem;
+  }
+  #s3 .card.featured {
+    border-color: rgba(6,182,212,0.3);
+    background: rgba(6,182,212,0.05);
+  }
+
+  #s3 .card-icon {
+    font-size: 1.5rem;
+    margin-bottom: 0.75rem;
+  }
+  #s3 .card h3 {
+    font-size: clamp(0.8rem, 1.2vw, 1rem);
+    font-weight: 700;
+    color: var(--white);
+    margin-bottom: 0.5rem;
+    line-height: 1.3;
+  }
+  #s3 .card p {
+    font-size: clamp(0.65rem, 0.95vw, 0.82rem);
+    color: #94A3B8;
+    line-height: 1.6;
+  }
+  #s3 .card .tag {
+    display: inline-block;
+    margin-top: 0.75rem;
+    font-size: 0.6rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 0.2rem 0.5rem;
+    border-radius: 999px;
+    background: rgba(6,182,212,0.12);
+    color: var(--cyan);
+    border: 1px solid rgba(6,182,212,0.2);
+  }
+  #s3 .card .tag.orange {
+    background: rgba(249,115,22,0.12);
+    color: var(--orange);
+    border-color: rgba(249,115,22,0.2);
+  }
+
+  #s3 .footer-cta {
+    position: relative;
+    display: flex; align-items: center; gap: 2rem;
+  }
+  #s3 .footer-cta .ask {
+    font-size: clamp(0.7rem, 1vw, 0.85rem);
+    color: var(--muted);
+  }
+  #s3 .footer-cta .ask strong { color: var(--white); }
+
+  /* Model logos row */
+  #s3 .models {
+    display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;
+  }
+  #s3 .model-chip {
+    display: flex; align-items: center; gap: 0.4rem;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 6px;
+    padding: 0.35rem 0.75rem;
+    font-size: clamp(0.65rem, 0.9vw, 0.78rem);
+    color: #CBD5E1;
+  }
+  #s3 .model-chip .dot {
+    width: 6px; height: 6px; border-radius: 50%;
+  }
+  #s3 .model-chip .dot.green  { background: #22C55E; }
+  #s3 .model-chip .dot.blue   { background: var(--blue); }
+  #s3 .model-chip .dot.red    { background: #EF4444; }
+  #s3 .model-chip .dot.purple { background: #A855F7; }
+
+  /* logo top-right */
+  .logo-mark {
+    position: fixed; top: 1.8rem; right: 2.5rem;
+    font-size: 0.75rem;
+    font-weight: 800;
+    letter-spacing: 0.05em;
+    color: rgba(255,255,255,0.25);
+    z-index: 100;
+  }
+  .logo-mark span { color: var(--cyan); }
+</style>
+</head>
+<body>
+
+<div class="logo-mark">lc<span>-</span>graph</div>
+
+<!-- ──────────────────────────────────────────
+     SLIDE 1 · EL PROBLEMA
+─────────────────────────────────────────── -->
+<div class="slide active" id="s1">
+  <div class="bg-circle"></div>
+  <div class="accent-bar"></div>
+
+  <div class="kicker">Propuesta de valor · CDTI 2026</div>
+
+  <h1>La administración <em>no habla</em> el idioma del ciudadano</h1>
+
+  <div class="stats">
+    <div class="stat">
+      <div class="num"><span>+500M</span></div>
+      <div class="label">documentos administrativos emitidos cada año en España</div>
+    </div>
+    <div class="stat">
+      <div class="num"><span>76%</span></div>
+      <div class="label">de ciudadanos no comprenden plenamente las notificaciones oficiales</div>
+    </div>
+    <div class="stat">
+      <div class="num"><span>0</span></div>
+      <div class="label">herramientas de evaluación masiva automatizada existentes en el mercado</div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="pain-points">
+    <div class="pain">
+      <strong>Revisión manual</strong>
+      Lingüistas especializados revisan documentos uno a uno. Semanas de trabajo. Insostenible a escala.
+    </div>
+    <div class="pain">
+      <strong>Criterios dispersos</strong>
+      Las guías de lenguaje claro existen, pero no hay un sistema que las aplique de forma consistente y medible.
+    </div>
+    <div class="pain">
+      <strong>Sin trazabilidad</strong>
+      No hay métricas, no hay evolución, no hay rendición de cuentas sobre la calidad comunicativa de la administración.
+    </div>
+    <div class="pain">
+      <strong>Dependencia tecnológica</strong>
+      Las soluciones IA existentes son de Big Tech extranjera, sin opción de modelos europeos soberanos.
+    </div>
+  </div>
+</div>
+
+
+<!-- ──────────────────────────────────────────
+     SLIDE 2 · LA SOLUCIÓN
+─────────────────────────────────────────── -->
+<div class="slide" id="s2">
+
+  <!-- LEFT PANEL -->
+  <div class="left">
+    <div class="kicker">La solución</div>
+    <h2>41 criterios de lenguaje claro evaluados en <em>segundos</em></h2>
+
+    <div class="features">
+      <div class="feat">
+        <div class="feat-icon">⚡</div>
+        <div class="feat-text">
+          <strong>Multi-agente en paralelo</strong>
+          <span>5 agentes especializados evalúan simultáneamente — velocidad de producción, no de laboratorio</span>
+        </div>
+      </div>
+      <div class="feat">
+        <div class="feat-icon">📐</div>
+        <div class="feat-text">
+          <strong>41 ítems, 5 dimensiones</strong>
+          <span>Localización · Comprensión · Humanización · Vocabulario · Toma de decisiones</span>
+        </div>
+      </div>
+      <div class="feat">
+        <div class="feat-icon">🔌</div>
+        <div class="feat-text">
+          <strong>LLM-agnóstico</strong>
+          <span>Hoy Claude o Llama — mañana ALIA (español) o Mistral (europeo) sin cambiar arquitectura</span>
+        </div>
+      </div>
+      <div class="feat">
+        <div class="feat-icon">🌐</div>
+        <div class="feat-text">
+          <strong>API-ready &amp; open-source</strong>
+          <span>FastAPI + MCP server. Integrable en cualquier sistema de gestión documental (Notific@, Cl@ve...)</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT PANEL -->
+  <div class="right">
+    <div class="pipeline-title">Arquitectura del pipeline · LangGraph</div>
+
+    <div class="pipeline">
+
+      <!-- SA-0 -->
+      <div class="pipe-row">
+        <div class="pipe-node highlight" style="flex:1">
+          <span class="tag">SA-0 · Clasificador</span>
+          Identifica tipología documental (resolución, notificación, carta…)
+        </div>
+      </div>
+
+      <!-- Fan-out arrow -->
+      <div class="pipe-row" style="justify-content:center">
+        <span style="color:rgba(6,182,212,0.4); font-size:0.8rem; letter-spacing:0.2em">▼ fan-out paralelo</span>
+      </div>
+
+      <!-- SA-1..5 parallel -->
+      <div class="pipe-row" style="gap:0.5rem">
+        <div class="pipe-divider"></div>
+        <div class="pipe-parallel">
+          <div class="pipe-node">
+            <span>SA-1 · Facilita la localización</span>
+            <span class="pipe-badge">11 ítems</span>
+          </div>
+          <div class="pipe-node">
+            <span>SA-2 · Mejora la comprensión</span>
+            <span class="pipe-badge">10 ítems</span>
+          </div>
+          <div class="pipe-node">
+            <span>SA-3 · Personaliza y humaniza</span>
+            <span class="pipe-badge">7 ítems</span>
+          </div>
+          <div class="pipe-node">
+            <span>SA-4 · Elige palabras sencillas</span>
+            <span class="pipe-badge">10 ítems</span>
+          </div>
+          <div class="pipe-node">
+            <span>SA-5 · Facilita la toma de decisiones</span>
+            <span class="pipe-badge">3 ítems</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Fan-in arrow -->
+      <div class="pipe-row" style="justify-content:center">
+        <span style="color:rgba(6,182,212,0.4); font-size:0.8rem; letter-spacing:0.2em">▼ fan-in + scoring</span>
+      </div>
+
+      <!-- SA-6a + SA-6b -->
+      <div class="pipe-row" style="gap:0.5rem">
+        <div class="pipe-node" style="flex:1">
+          <span class="tag">SA-6a · Calculador</span>
+          <span class="desc">Puntuaciones por sección — Python puro, sin LLM</span>
+        </div>
+        <span class="pipe-arrow">→</span>
+        <div class="pipe-node highlight" style="flex:1">
+          <span class="tag">SA-6b · Sintetizador</span>
+          <span class="desc">Narrativa, puntos fuertes, áreas de mejora</span>
+        </div>
+      </div>
+
+    </div><!-- /pipeline -->
+
+    <div class="metric-row">
+      <div class="metric">
+        <div class="val"><span>7</span></div>
+        <div class="lbl">llamadas LLM totales por documento</div>
+      </div>
+      <div class="metric">
+        <div class="val"><span>~15s</span></div>
+        <div class="lbl">tiempo medio de evaluación completa</div>
+      </div>
+      <div class="metric">
+        <div class="val"><span>41</span></div>
+        <div class="lbl">criterios evaluados con justificación</div>
+      </div>
+      <div class="metric">
+        <div class="val"><span>100%</span></div>
+        <div class="lbl">trazable y auditable · JSON estructurado</div>
+      </div>
+    </div>
+
+  </div><!-- /right -->
+</div>
+
+
+<!-- ──────────────────────────────────────────
+     SLIDE 3 · ESCALA Y SOBERANÍA
+─────────────────────────────────────────── -->
+<div class="slide" id="s3">
+  <div class="bg-grid"></div>
+  <div class="bg-glow"></div>
+
+  <div class="kicker">Escalabilidad · Soberanía IA · Alineación CDTI</div>
+
+  <h2>De un documento a <em>toda la administración</em> española</h2>
+
+  <div class="grid">
+
+    <div class="card featured">
+      <div class="card-icon">🏗️</div>
+      <h3>Arquitectura diseñada para escalar</h3>
+      <p>API REST + Model Context Protocol (MCP). Se integra en cualquier gestor documental (Notific@, portales autonómicos, BOP) sin rediseño. Serverless-ready.</p>
+      <span class="tag">Cloud-native · API-first</span>
+    </div>
+
+    <div class="card">
+      <div class="card-icon">🇪🇺</div>
+      <h3>Soberanía IA europea sin fricción</h3>
+      <p>El pipeline es LLM-agnóstico: sustituir Claude por <strong style="color:#e2e8f0">ALIA</strong> (español, BSC) o <strong style="color:#e2e8f0">Mistral</strong> (francés, open-source) requiere cambiar una línea de configuración. Zero vendor lock-in.</p>
+      <span class="tag orange">ALIA · Mistral · Llama</span>
+    </div>
+
+    <div class="card">
+      <div class="card-icon">📊</div>
+      <h3>Métricas y rendición de cuentas</h3>
+      <p>Genera indicadores objetivos de calidad comunicativa por organismo, tipo documental y período. Permite dashboards de cumplimiento alineados con la Ley de Lenguaje Claro.</p>
+      <span class="tag">KPI · Compliance · Auditoría</span>
+    </div>
+
+    <div class="card">
+      <div class="card-icon">🔬</div>
+      <h3>Base investigadora robusta</h3>
+      <p>Evaluaciones automáticas (evals) contra dataset dorado. Metodología reproducible. Resultados publicables. Facilita colaboración con universidades y centros públicos de investigación.</p>
+      <span class="tag">Evals · Dataset dorado · I+D</span>
+    </div>
+
+    <div class="card">
+      <div class="card-icon">⚖️</div>
+      <h3>Alineación con política pública</h3>
+      <p>Apoya la transposición de la directiva europea de accesibilidad y las guías de lenguaje claro del MAP. Herramienta para administraciones, no para consumo masivo.</p>
+      <span class="tag">Directiva UE · MAP · Accesibilidad</span>
+    </div>
+
+    <div class="card featured">
+      <div class="card-icon">🚀</div>
+      <h3>Hoja de ruta validada</h3>
+      <p>Demo en producción. Pipeline estable con observabilidad (LangSmith). Fase siguiente: fine-tuning de modelos europeos con corpus administrativo español anotado.</p>
+      <span class="tag">MVP ✓ · Fine-tuning · Corpus ES</span>
+    </div>
+
+  </div>
+
+  <div class="footer-cta">
+    <div class="ask">
+      <strong>Modelo actual</strong> — intercambiable en producción:
+    </div>
+    <div class="models">
+      <div class="model-chip"><div class="dot green"></div> Claude (Anthropic) · actual</div>
+      <div class="model-chip"><div class="dot red"></div> ALIA (BSC · España)</div>
+      <div class="model-chip"><div class="dot blue"></div> Mistral (Europa)</div>
+      <div class="model-chip"><div class="dot purple"></div> Llama 3.3 70b (Meta · open)</div>
+    </div>
+  </div>
+
+</div>
+
+
+<!-- ── Nav ── -->
+<div class="slide-counter" id="counter">1 / 3</div>
+<div class="nav">
+  <button id="prev" onclick="move(-1)">←</button>
+  <button id="next" onclick="move(+1)">→</button>
+</div>
+
+<script>
+  const slides = document.querySelectorAll('.slide');
+  const counter = document.getElementById('counter');
+  let cur = 0;
+
+  function show(n) {
+    slides[cur].classList.remove('active');
+    cur = (n + slides.length) % slides.length;
+    slides[cur].classList.add('active');
+    counter.textContent = (cur + 1) + ' / ' + slides.length;
+  }
+
+  function move(dir) { show(cur + dir); }
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') move(+1);
+    if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')                     move(-1);
+  });
+</script>
+</body>
+</html>
